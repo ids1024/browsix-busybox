@@ -1,11 +1,13 @@
 #!/bin/sh
 
-#sudo docker build -t browsix-alpine-build .
+IMAGE=ids1024/browsix-alpine-build
+
+sudo docker pull $IMAGE
 
 sudo docker run \
 	--rm \
 	-v "$PWD:/browsix-alpine" \
 	-w /browsix-alpine \
 	-u $(id -u):$(id -g) \
-	browsix-alpine-build \
+	$IMAGE \
 	./build-alpine.sh
