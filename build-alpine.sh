@@ -1,12 +1,40 @@
 #!/bin/sh
+
+set -e
+
 export PATH=$PWD/emscripten:$PATH
-export CTARGET=js
-export PACKAGER_PRIVKEY=$PWD/abuild-key.rsa
-SRCDEST=$PWD/distfiles
+export HOME=$PWD
 
-if [ ! -e $PACKEGER_PRIVKEY ]; then
-	echo $PACKEGER_PRIVKEY | abuild-keygen
-fi
+cd busybox
+	emmake make CROSS_COMPILE= CC=emcc SKIP_STRIP=y
+cd ..
 
-cd aports/main/busybox
-abuild -s $SRCDEST -r
+cd browsix
+	npm install
+	./node_modules/.bin/bower install
+	./node_modules/.bin/gulp app:build app:styles app:elements app:images
+cd ..
+
+rm -rf dist
+mkdir -p dist/fs/bin dist/fs/usr/bin
+
+cp -r browsix/app/* dist
+cp -r browsix/bower_components dist
+cp -r browsix/node_modules/xterm/dist dist/xterm
+cp browsix/fs/usr/bin/sh browsix/fs/usr/bin/node browsix/fs/usr/bin/ld dist/fs/usr/bin
+
+cp busybox/busybox_unstripped.js dist/fs/usr/bin/busybox
+cp browsix/fs/bin/sh dist/fs/bin/sh
+cp -r browsix/fs/boot dist/fs
+
+for i in $(node dist/fs/usr/bin/busybox --list)
+do
+	echo '#!/bin/sh' > dist/fs/usr/bin/$i
+	echo /usr/bin/busybox $i '$@' >> dist/fs/usr/bin/$i
+done
+
+browsix/xhrfs-index dist/fs > dist/fs/index.json
+
+cd dist
+	python2 -m SimpleHTTPServer 8080
+cd ..
