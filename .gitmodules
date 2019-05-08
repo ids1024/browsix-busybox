@@ -1,0 +1,9 @@
+[submodule "browsix"]
+	path = browsix
+	url = https://github.com/ids1024/browsix
+[submodule "busybox"]
+	path = busybox
+	url = https://github.com/ids1024/busybox
+[submodule "emscripten"]
+	path = emscripten
+	url = https://github.com/ids1024/emscripten
