@@ -2,19 +2,6 @@
 
 set -e
 
-export PATH=$PWD/emscripten:$PATH
-export HOME=$PWD
-
-cd busybox
-	emmake make CROSS_COMPILE= CC=emcc SKIP_STRIP=y
-cd ..
-
-cd browsix
-	npm install
-	./node_modules/.bin/bower install
-	./node_modules/.bin/gulp app:build app:styles app:elements app:images
-cd ..
-
 rm -rf dist
 mkdir -p dist/fs/bin dist/fs/usr/bin
 
@@ -34,7 +21,3 @@ do
 done
 
 browsix/xhrfs-index dist/fs > dist/fs/index.json
-
-cd dist
-	python2 -m SimpleHTTPServer 8080
-cd ..
