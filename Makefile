@@ -27,7 +27,7 @@ dist: busybox browsix
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
 busybox:
-	cd busybox && emmake make CROSS_COMPILE= CC=emcc SKIP_STRIP=y
+	emmake $(MAKE) -C busybox CROSS_COMPILE= CC=emcc SKIP_STRIP=y
 
 browsix:
 	cd browsix && \
@@ -36,8 +36,8 @@ browsix:
 	./node_modules/.bin/gulp app:build app:styles app:elements app:images
 
 clean:
-	cd busybox && make clean
-	cd browsix && make clean
+	$(MAKE) -C busybox clean
+	$(MAKE) -C browsix clean
 	rm -rf dist
 
 .PHONY: all dist serve busybox browsix
