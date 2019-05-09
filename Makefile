@@ -1,7 +1,9 @@
 export PATH := $(shell pwd)/emscripten:$(PATH)
 
+all: dist
+
 serve: dist
-	python2 -m SimpleHTTPServer 8080
+	cd dist && python2 -m SimpleHTTPServer 8080
 
 dist: busybox browsix
 	rm -rf dist
@@ -16,10 +18,10 @@ dist: busybox browsix
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
 	\
-	for i in $(node dist/fs/usr/bin/busybox --list)
-	do
-		echo '#!/bin/sh' > dist/fs/usr/bin/$i
-		echo /usr/bin/busybox $i '$@' >> dist/fs/usr/bin/$i
+	for i in $$(node dist/fs/usr/bin/busybox --list) ; \
+	do \
+		echo '#!/bin/sh' > dist/fs/usr/bin/$$i ; \
+		echo /usr/bin/busybox $$i '$$@' >> dist/fs/usr/bin/$$i ; \
 	done
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
@@ -38,4 +40,4 @@ clean:
 	cd browsix && make clean
 	rm -rf dist
 
-.PHONY: dist serve busybox browsix
+.PHONY: all dist serve busybox browsix
