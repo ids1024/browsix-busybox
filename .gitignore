@@ -1,0 +1,5 @@
+.cache
+.config
+.npm
+.emscripten_*
+dist
