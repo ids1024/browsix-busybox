@@ -47,18 +47,18 @@ musl/config.mak: musl-config.mak
 musl/obj/include/bits/alltypes.h: musl/arch/wasm32/bits/alltypes.h.in musl/config.mak
 	cd musl && make obj/include/bits/alltypes.h
 
-compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a: musl/obj/include/bits/alltypes.h
-	cd compiler-rt && \
-	mkdir build && \
-	cd build && \
-	cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_SYSTEM_NAME="Generic" --target=wasm32 -DCOMPILER_RT_BAREMETAL_BUILD=TRUE -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=wasm32 -DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_PROFILE=OFF -DCAN_TARGET_wasm32=1 -DCMAKE_C_FLAGS="-nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include" .. && \
-	$(MAKE)
+compiler-rt/build/Makefile:
+	mkdir compiler-rt/build
+	cd compiler-rt/build && cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_SYSTEM_NAME="Generic" --target=wasm32 -DCOMPILER_RT_BAREMETAL_BUILD=TRUE -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=wasm32 -DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_PROFILE=OFF -DCAN_TARGET_wasm32=1 -DCMAKE_C_FLAGS="-nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include" ..
+
+compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a: FORCE compiler-rt/build/Makefile musl/obj/include/bits/alltypes.h
+	$(MAKE) -C compiler-rt/build
 
 clean:
 	$(MAKE) -C busybox clean
 	$(MAKE) -C browsix clean
 	$(MAKE) -C musl clean
-	rf -rf compiler-rt/build
+	rm -rf compiler-rt/build
 	rm -rf dist
 
 # https://stackoverflow.com/questions/33349078/make-execute-2nd-rule-only-if-1st-changed-file
