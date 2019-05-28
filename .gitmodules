@@ -10,3 +10,6 @@
 [submodule "compiler-rt"]
 	path = compiler-rt
 	url = https://git.llvm.org/git/compiler-rt
+[submodule "wasm-loader-browsix"]
+	path = wasm-loader-browsix
+	url = https://github.com/ids1024/wasm-loader-browsix

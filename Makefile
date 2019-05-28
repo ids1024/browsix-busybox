@@ -7,15 +7,16 @@ all: dist
 serve: dist
 	cd dist && python2 -m SimpleHTTPServer 8080
 
-dist: busybox/busybox browsix
+dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
 	rm -rf dist
 	mkdir -p dist/fs/bin dist/fs/usr/bin
 	\
 	cp -r browsix/app/* dist
 	cp -r browsix/bower_components dist
 	cp -r browsix/node_modules/xterm/dist dist/xterm
-	cp browsix/fs/usr/bin/sh browsix/fs/usr/bin/node browsix/fs/usr/bin/ld dist/fs/usr/bin
+	cp browsix/fs/usr/bin/sh browsix/fs/usr/bin/node dist/fs/usr/bin
 	\
+	cp wasm-loader-browsix/wasm.js dist/fs/usr/bin/ld
 	cp busybox/busybox dist/fs/usr/bin/busybox
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
@@ -28,9 +29,12 @@ dist: busybox/busybox browsix
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
+wasm-loader-browsix/wasm.js: FORCE
+	$(MAKE) -w -C wasm-loader-browsix MUSL=$(PWD)/musl
+
 busybox/busybox: musl/lib/libc.a
-	$(MAKE) -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
-	$(MAKE) -C busybox busybox.links
+	$(MAKE) -w -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
+	$(MAKE) -w -C busybox busybox.links
 
 browsix:
 	cd browsix && \
@@ -52,12 +56,12 @@ compiler-rt/build/Makefile:
 	cd compiler-rt/build && cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_SYSTEM_NAME="Generic" --target=wasm32 -DCOMPILER_RT_BAREMETAL_BUILD=TRUE -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=wasm32 -DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_PROFILE=OFF -DCAN_TARGET_wasm32=1 -DCMAKE_C_FLAGS="-nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include" ..
 
 compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a: FORCE compiler-rt/build/Makefile musl/obj/include/bits/alltypes.h
-	$(MAKE) -C compiler-rt/build
+	$(MAKE) -w -C compiler-rt/build
 
 clean:
-	$(MAKE) -C busybox clean
-	$(MAKE) -C browsix clean
-	$(MAKE) -C musl clean
+	$(MAKE) -w -C busybox clean
+	$(MAKE) -w -C browsix clean
+	$(MAKE) -w -C musl clean
 	rm -rf compiler-rt/build
 	rm -rf dist
 
