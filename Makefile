@@ -1,4 +1,6 @@
-export PATH := $(shell pwd)/emscripten:$(PATH)
+BUSYBOX_CFLAGS := -nostdlib --target=wasm32 -Os -nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include
+
+BUSYBOX_LDFLAGS := $(BUSYBOX_CFLAGS) -Wl,--no-entry -Wl,--export=main -Wl,--export=__init_libc -Wl,--export=__libc_start_init -Wl,--export=exit -Wl,--allow-undefined-file=$(PWD)/functions -Wl,--import-memory -Wl,--shared-memory -Wl,--max-memory=67108864 -L$(PWD)/musl/lib -L$(PWD)/compiler-rt/build/lib/generic -Wl,--whole-archive -lc -lclang_rt.builtins-wasm32 -Wl,-error-limit=0
 
 all: dist
 
@@ -14,7 +16,7 @@ dist: busybox browsix
 	cp -r browsix/node_modules/xterm/dist dist/xterm
 	cp browsix/fs/usr/bin/sh browsix/fs/usr/bin/node browsix/fs/usr/bin/ld dist/fs/usr/bin
 	\
-	cp busybox/busybox_unstripped.js dist/fs/usr/bin/busybox
+	cp busybox/busybox dist/fs/usr/bin/busybox
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
 	\
@@ -26,8 +28,8 @@ dist: busybox browsix
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
-busybox:
-	emmake $(MAKE) -C busybox CROSS_COMPILE= CC=emcc SKIP_STRIP=y
+busybox: musl
+	$(MAKE) -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
 
 browsix:
 	cd browsix && \
@@ -35,9 +37,27 @@ browsix:
 	./node_modules/.bin/bower install && \
 	./node_modules/.bin/gulp app:build app:styles app:elements app:images
 
+musl: compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a  musl/config.mak
+	cd musl && make
+
+musl/config.mak: musl-config.mak
+	cp $< $@
+
+musl/obj/include/bits/alltypes.h: musl/arch/wasm32/bits/alltypes.h.in musl/config.mak
+	cd musl && make obj/include/bits/alltypes.h
+
+compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a: musl/obj/include/bits/alltypes.h
+	cd compiler-rt && \
+	mkdir build && \
+	cd build && \
+	cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_SYSTEM_NAME="Generic" --target=wasm32 -DCOMPILER_RT_BAREMETAL_BUILD=TRUE -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=wasm32 -DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_PROFILE=OFF -DCAN_TARGET_wasm32=1 -DCMAKE_C_FLAGS="-nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include" .. && \
+	$(MAKE)
+
 clean:
 	$(MAKE) -C busybox clean
 	$(MAKE) -C browsix clean
+	$(MAKE) -C musl clean
+	rf -rf compiler-rt/build
 	rm -rf dist
 
-.PHONY: all dist serve busybox browsix
+.PHONY: all dist serve busybox browsix musl

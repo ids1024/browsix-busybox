@@ -4,6 +4,9 @@
 [submodule "busybox"]
 	path = busybox
 	url = https://github.com/ids1024/busybox
-[submodule "emscripten"]
-	path = emscripten
-	url = https://github.com/ids1024/emscripten
+[submodule "musl"]
+	path = musl
+	url = https://github.com/ids1024/musl
+[submodule "compiler-rt"]
+	path = compiler-rt
+	url = https://git.llvm.org/git/compiler-rt
