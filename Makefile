@@ -20,16 +20,17 @@ dist: busybox browsix
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
 	\
-	for i in $$(node dist/fs/usr/bin/busybox --list) ; \
+	for i in $$(cat busybox/busybox.links) ; \
 	do \
-		echo '#!/bin/sh' > dist/fs/usr/bin/$$i ; \
-		echo /usr/bin/busybox $$i '$$@' >> dist/fs/usr/bin/$$i ; \
+		echo '#!/bin/sh' > dist/fs/usr/bin/$$(basename $$i) ; \
+		echo /usr/bin/busybox $$(basename $$i) '$$@' >> dist/fs/usr/bin/$$(basename $$i) ; \
 	done
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
 busybox: musl
 	$(MAKE) -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
+	$(MAKE) -C busybox busybox.links
 
 browsix:
 	cd browsix && \
