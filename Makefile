@@ -7,7 +7,7 @@ all: dist
 serve: dist
 	cd dist && python2 -m SimpleHTTPServer 8080
 
-dist: busybox browsix
+dist: busybox/busybox browsix
 	rm -rf dist
 	mkdir -p dist/fs/bin dist/fs/usr/bin
 	\
@@ -28,7 +28,7 @@ dist: busybox browsix
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
-busybox: musl
+busybox/busybox: musl/lib/libc.a
 	$(MAKE) -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
 	$(MAKE) -C busybox busybox.links
 
@@ -38,7 +38,7 @@ browsix:
 	./node_modules/.bin/bower install && \
 	./node_modules/.bin/gulp app:build app:styles app:elements app:images
 
-musl: compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a  musl/config.mak
+musl/lib/libc.a: FORCE compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a musl/config.mak
 	cd musl && make
 
 musl/config.mak: musl-config.mak
@@ -60,5 +60,8 @@ clean:
 	$(MAKE) -C musl clean
 	rf -rf compiler-rt/build
 	rm -rf dist
+
+# https://stackoverflow.com/questions/33349078/make-execute-2nd-rule-only-if-1st-changed-file
+FORCE: ;
 
 .PHONY: all dist serve busybox browsix musl
