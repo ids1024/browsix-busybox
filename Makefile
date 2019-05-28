@@ -1,6 +1,6 @@
 BUSYBOX_CFLAGS := -nostdlib --target=wasm32 -Os -nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include
 
-BUSYBOX_LDFLAGS := $(BUSYBOX_CFLAGS) -Wl,--no-entry -Wl,--export=main -Wl,--export=__init_libc -Wl,--export=__libc_start_init -Wl,--export=exit -Wl,--allow-undefined-file=$(PWD)/functions -Wl,--import-memory -Wl,--shared-memory -Wl,--max-memory=67108864 -L$(PWD)/musl/lib -L$(PWD)/compiler-rt/build/lib/generic -Wl,--whole-archive -lc -lclang_rt.builtins-wasm32 -Wl,-error-limit=0
+BUSYBOX_LDFLAGS := $(BUSYBOX_CFLAGS) -Wl,--no-entry -Wl,--export=main -Wl,--export=__init_libc -Wl,--export=__libc_start_init -Wl,--export=exit -Wl,--allow-undefined-file=$(PWD)/wasm-loader-browsix/functions -Wl,--import-memory -Wl,--shared-memory -Wl,--max-memory=67108864 -L$(PWD)/musl/lib -L$(PWD)/compiler-rt/build/lib/generic -Wl,--whole-archive -lc -lclang_rt.builtins-wasm32 -Wl,-error-limit=0
 
 all: dist
 
@@ -24,7 +24,7 @@ dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
 	for i in $$(cat busybox/busybox.links) ; \
 	do \
 		echo '#!/bin/sh' > dist/fs/usr/bin/$$(basename $$i) ; \
-		echo /usr/bin/busybox $$(basename $$i) '$$@' >> dist/fs/usr/bin/$$(basename $$i) ; \
+		echo busybox $$(basename $$i) '$$@' >> dist/fs/usr/bin/$$(basename $$i) ; \
 	done
 	\
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
