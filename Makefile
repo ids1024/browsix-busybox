@@ -9,7 +9,10 @@ serve: dist
 
 dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
 	rm -rf dist
-	mkdir -p dist/fs/bin dist/fs/usr/bin
+	mkdir -p dist/fs/bin dist/fs/usr/bin dist/fs/etc
+	\
+	echo root:x:0:0::/root:/bin/sh > dist/fs/etc/passwd
+	echo root:x:0:root > dist/fs/etc/group
 	\
 	cp -r browsix/app/* dist
 	cp -r browsix/bower_components dist
