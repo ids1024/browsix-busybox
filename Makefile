@@ -20,6 +20,7 @@ dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
 	cp browsix/fs/usr/bin/sh browsix/fs/usr/bin/node dist/fs/usr/bin
 	\
 	cp wasm-loader-browsix/wasm.js dist/fs/usr/bin/ld
+	cp wasm-loader-browsix/strace.sh dist/fs/usr/bin/strace
 	cp busybox/busybox dist/fs/usr/bin/busybox
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
