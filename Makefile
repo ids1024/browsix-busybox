@@ -24,7 +24,10 @@ dist: busybox browsix
 		echo /usr/bin/busybox $$i '$$@' >> dist/fs/usr/bin/$$i ; \
 	done
 	\
-	browsix/xhrfs-index dist/fs > dist/fs/index.json
+	rm -f dist/fs/index.json
+	temp=$$(mktemp indexXXXXXX.json) ; \
+	browsix/xhrfs-index dist/fs > $$temp ; \
+	mv $$temp dist/fs/index.json
 
 busybox:
 	emmake $(MAKE) -C busybox CROSS_COMPILE= CC=emcc SKIP_STRIP=y
