@@ -25,7 +25,7 @@ dist: busybox browsix
 	done
 	\
 	rm -f dist/fs/index.json
-	temp=$$(mktemp indexXXXXXX.json) ; \
+	temp=$$(mktemp index.jsonXXXXXX) ; \
 	browsix/xhrfs-index dist/fs > $$temp ; \
 	mv $$temp dist/fs/index.json
 
