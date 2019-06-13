@@ -17,6 +17,6 @@ RUN cd fastcomp \
     && make -j4
 
 FROM alpine:3.9.3
-RUN apk add --no-cache python nodejs npm alpine-sdk
+RUN apk add --no-cache python nodejs npm alpine-sdk python3 clang
 COPY --from=fastcomp /fastcomp/build/bin /fastcomp
 RUN echo "{\"allow_root\": true}" > ~/.bowerrc

@@ -7,3 +7,7 @@
 [submodule "emscripten"]
 	path = emscripten
 	url = https://github.com/ids1024/emscripten
+[submodule "micropython"]
+	path = micropython
+	url = https://github.com/klanmiko/micropython.git
+	branch = browsix

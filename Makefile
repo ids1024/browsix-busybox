@@ -5,7 +5,7 @@ all: dist
 serve: dist
 	cd dist && python2 -m SimpleHTTPServer 8080
 
-dist: busybox browsix
+dist: busybox browsix micropython
 	rm -rf dist
 	mkdir -p dist/fs/bin dist/fs/usr/bin
 	\
@@ -18,26 +18,37 @@ dist: busybox browsix
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
 	\
+	\
 	for i in $$(node dist/fs/usr/bin/busybox --list) ; \
 	do \
 		echo '#!/bin/sh' > dist/fs/usr/bin/$$i ; \
 		echo /usr/bin/busybox $$i '$$@' >> dist/fs/usr/bin/$$i ; \
 	done
 	\
+	cp micropython/ports/browsix/build/micropython.js dist/fs/usr/bin/micropython
 	browsix/xhrfs-index dist/fs > dist/fs/index.json
 
 busybox:
 	emmake $(MAKE) -C busybox CROSS_COMPILE= CC=emcc SKIP_STRIP=y
 
-browsix:
+browsix/node_modules:
 	cd browsix && \
-	npm install && \
-	./node_modules/.bin/bower install && \
-	./node_modules/.bin/gulp app:build app:styles app:elements app:images
+	npm install
 
+browsix/bower_components: browsix/node_modules
+	cd browsix && \
+	npx bower install
+
+browsix: browsix/bower_components
+	cd browsix && \
+	npx gulp build:dist
+
+micropython:
+	$(MAKE) -C micropython/ports/browsix
 clean:
 	$(MAKE) -C busybox clean
 	$(MAKE) -C browsix clean
+	$(MAKE) -C micropython/ports/browsix clean
 	rm -rf dist
 
-.PHONY: all dist serve busybox browsix
+.PHONY: all dist serve busybox browsix micropython
