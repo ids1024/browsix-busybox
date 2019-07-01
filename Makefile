@@ -1,4 +1,4 @@
-BUSYBOX_CFLAGS := -nostdlib --target=wasm32 -Os -nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include
+BUSYBOX_CFLAGS := -g -nostdlib --target=wasm32 -nostdinc -isystem $(PWD)/musl/include -isystem $(PWD)/musl/arch/wasm32 -isystem $(PWD)/musl/obj/include
 
 BUSYBOX_LDFLAGS := $(BUSYBOX_CFLAGS) -Wl,--no-entry -Wl,--export=main -Wl,--export=__init_libc -Wl,--export=__libc_start_init -Wl,--export=exit -Wl,--allow-undefined-file=$(PWD)/wasm-loader-browsix/functions -Wl,--import-memory -Wl,--shared-memory -Wl,--max-memory=67108864 -L$(PWD)/musl/lib -L$(PWD)/compiler-rt/build/lib/generic -Wl,--whole-archive -lc -lclang_rt.builtins-wasm32 -Wl,-error-limit=0
 
@@ -7,7 +7,7 @@ all: dist
 serve: dist
 	cd dist && python2 -m SimpleHTTPServer 8080
 
-dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
+dist: busybox/busybox busybox/busybox.map wasm-loader-browsix/wasm.js browsix
 	rm -rf dist
 	mkdir -p dist/fs/bin dist/fs/usr/bin dist/fs/etc
 	\
@@ -22,6 +22,7 @@ dist: busybox/busybox wasm-loader-browsix/wasm.js browsix
 	cp wasm-loader-browsix/wasm.js dist/fs/usr/bin/ld
 	cp wasm-loader-browsix/strace.sh dist/fs/usr/bin/strace
 	cp busybox/busybox dist/fs/usr/bin/busybox
+	cp busybox/busybox.map dist/fs/usr/bin/busybox.map
 	cp browsix/fs/bin/sh dist/fs/bin/sh
 	cp -r browsix/fs/boot dist/fs
 	\
@@ -37,8 +38,11 @@ wasm-loader-browsix/wasm.js: FORCE
 	$(MAKE) -w -C wasm-loader-browsix MUSL=$(PWD)/musl
 
 busybox/busybox: musl/lib/libc.a
-	$(MAKE) -w -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
+	$(MAKE) -w -C busybox CC=clang STRIP=wasm-strip CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
 	$(MAKE) -w -C busybox busybox.links
+
+busybox/busybox.map: busybox/busybox dwarf-to-json/target/release/dwarf-to-json
+	dwarf-to-json/target/release/dwarf-to-json $<_unstripped -o $@
 
 browsix:
 	cd browsix && \
@@ -62,10 +66,14 @@ compiler-rt/build/Makefile:
 compiler-rt/build/lib/generic/libclang_rt.builtins-wasm32.a: FORCE compiler-rt/build/Makefile musl/obj/include/bits/alltypes.h
 	$(MAKE) -w -C compiler-rt/build
 
+dwarf-to-json/target/release/dwarf-to-json: FORCE
+	cd dwarf-to-json && cargo build --release
+
 clean:
 	$(MAKE) -w -C busybox clean
 	$(MAKE) -w -C browsix clean
 	$(MAKE) -w -C musl clean
+	cd dwarf-to-json && cargo clean
 	rm -rf compiler-rt/build
 	rm -rf dist
 

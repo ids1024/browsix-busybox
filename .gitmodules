@@ -13,3 +13,6 @@
 [submodule "wasm-loader-browsix"]
 	path = wasm-loader-browsix
 	url = https://github.com/ids1024/wasm-loader-browsix
+[submodule "dwarf-to-json"]
+	path = dwarf-to-json
+	url = https://github.com/yurydelendik/dwarf-to-json
