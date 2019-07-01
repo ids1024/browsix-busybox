@@ -38,8 +38,9 @@ wasm-loader-browsix/wasm.js: FORCE
 	$(MAKE) -w -C wasm-loader-browsix MUSL=$(PWD)/musl
 
 busybox/busybox: musl/lib/libc.a
-	$(MAKE) -w -C busybox CC=clang STRIP=wasm-strip CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
+	$(MAKE) -w -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
 	$(MAKE) -w -C busybox busybox.links
+	wasm-strip busybox/busybox
 
 busybox/busybox.map: busybox/busybox dwarf-to-json/target/release/dwarf-to-json
 	dwarf-to-json/target/release/dwarf-to-json $<_unstripped -o $@
