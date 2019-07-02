@@ -1,6 +1,10 @@
 #!/bin/sh
 
-IMAGE=ids1024/browsix-build
+IMAGE=browsix-busybox-build
+
+cd docker
+	sudo docker build . -t $IMAGE 
+cd ..
 
 sudo docker run \
 	--rm \
@@ -10,5 +14,6 @@ sudo docker run \
 	-w /browsix-alpine \
 	-p 0.0.0.0:8080:8080/tcp \
 	-e HOME=/browsix-alpine \
+	-e PWD=/browsix-alpine \
 	$IMAGE \
 	$@
