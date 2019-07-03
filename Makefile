@@ -32,7 +32,10 @@ dist: busybox/busybox busybox/busybox.map wasm-loader-browsix/wasm.js browsix
 		echo busybox $$(basename $$i) '$$@' >> dist/fs/usr/bin/$$(basename $$i) ; \
 	done
 	\
-	browsix/xhrfs-index dist/fs > dist/fs/index.json
+	rm -f dist/fs/index.json
+	temp=$$(mktemp index.jsonXXXXXX) ; \
+	browsix/xhrfs-index dist/fs > $$temp ; \
+	mv $$temp dist/fs/index.json
 
 wasm-loader-browsix/wasm.js: FORCE
 	$(MAKE) -w -C wasm-loader-browsix MUSL=$(PWD)/musl
