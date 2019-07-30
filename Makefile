@@ -39,7 +39,8 @@ dist: busybox/busybox busybox/busybox.map wasm-loader-browsix/wasm.js browsix
 	mv $$temp dist/fs/index.json
 
 wasm-loader-browsix/wasm.js: FORCE
-	$(MAKE) -w -C wasm-loader-browsix MUSL=$(PWD)/musl
+	cd wasm-loader-browsix && npm install
+	cd wasm-loader-browsix && env MUSL=$(PWD)/musl npm run build
 
 busybox/busybox: musl/lib/libc.a
 	$(MAKE) -w -C busybox CC=clang SKIP_STRIP=y CFLAGS="$(BUSYBOX_CFLAGS)" LDFLAGS="$(BUSYBOX_LDFLAGS)"
