@@ -80,6 +80,7 @@ clean:
 	$(MAKE) -w -C browsix clean
 	$(MAKE) -w -C musl clean
 	cd dwarf-to-json && cargo clean
+	cd wasm-loader-browsix && npm run clean
 	rm -rf compiler-rt/build
 	rm -rf dist
 
